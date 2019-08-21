@@ -1,0 +1,7 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-100to200_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-1200to2500_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-200to400_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-2500toInf_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-400to600_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-600to800_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZJetsToNuNu_HT-800to1200_MC2016.root

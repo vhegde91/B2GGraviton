@@ -1,0 +1,16 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016B.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016C.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016D.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016E.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016F.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016G.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2016H.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2017B.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2017C.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2017D.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2017E.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2017F.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2018A.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2018B.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2018C.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signalUnblind/tree_MET_2018D.root

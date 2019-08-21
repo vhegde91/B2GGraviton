@@ -1,0 +1,2 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WGJets_MonoPhoton_PtG-130_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WGJets_MonoPhoton_PtG-40to130_MC2016.root

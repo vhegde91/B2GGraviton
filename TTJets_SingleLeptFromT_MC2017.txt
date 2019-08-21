@@ -1,0 +1,2 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTJets_SingleLeptFromT_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTJets_SingleLeptFromTbar_MC2017.root
