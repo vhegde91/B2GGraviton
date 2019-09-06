@@ -257,17 +257,17 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
     if(!isSB){
       if(isVBF && purityIdx==2) categNum.push_back(0);
       if(isVBF && purityIdx==1) categNum.push_back(1);
-      if(purityIdx==2) categNum.push_back(2);
-      if(purityIdx==1) categNum.push_back(3);
+      if(!isVBF && purityIdx==2) categNum.push_back(2);
+      if(!isVBF && purityIdx==1) categNum.push_back(3);
     }
     else{
       if(isVBF && purityIdx==2) categNum.push_back(4);
       if(isVBF && purityIdx==1) categNum.push_back(5);
-      if(purityIdx==2) categNum.push_back(6);
-      if(purityIdx==1) categNum.push_back(7);
+      if(!isVBF && purityIdx==2) categNum.push_back(6);
+      if(!isVBF && purityIdx==1) categNum.push_back(7);
     }
 
-    if(categNum.size()==0 || categNum.size() > 2){ cout<<"Could not IDfy category"<<endl; break;} //at max categs can be (VBF only) or (VBF and ggF). So size <=2.
+    if(categNum.size()==0 || categNum.size() > 1){ cout<<"Could not IDfy category"<<endl; break;} //at max categs can be VBF or nonVBF. So size <=1.
 
     h_vetos->Fill(NMuons+NElectrons+BTags+nPhotons,wt);    
 
