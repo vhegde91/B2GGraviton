@@ -94,6 +94,15 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
   else if(dataRun<0) cout<<"Processing it as "<<abs(dataRun)<<" MC"<<endl;
   else cout<<"No specific data/MC year"<<endl;
 
+  int jec2Use = 0;//-1 for JEC down, 0 for CV, 1 for JEC up
+  int jer2Use = -1;//-1 for JER down, 0 for CV, 1 for JER up
+  int jet2Vary = 48;//4: only AK4 jets, 8: only AK8 jets, 48 or 84: both AK4 and AK8.
+  if(jet2Vary!=0 && (jec2Use!=0 || jer2Use!=0)){
+    cout<<"Varying jets like:"<<jet2Vary<<" 4: only AK4 jets, 8: only AK8 jets, 48 or 84: both AK4 and AK8"<<endl;
+    if(jec2Use!=0) cout<<"!!!!!!!!!! Applying JECs. -1 for JEC down, 0 for CV, 1 for JEC up. I am using "<<jec2Use<<" !!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+    if(jer2Use!=0) cout<<"!!!!!!!!!! Applying JERs. -1 for JER down, 0 for CV, 1 for JER up. I am using "<<jer2Use<<" !!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+  }
+
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     
     // ==============print number of events done == == == == == == == =
@@ -114,6 +123,14 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
 
     h_cutflow->Fill("0",1);
     h_cutflow->Fill("Weighted",wt);
+    //--------------
+    if(jec2Use!=0 || jer2Use!=0) changeJets(jec2Use, jer2Use, jet2Vary);
+    // cout<<"HT values from tree: Nominal, JECup, JECDn, JERup, JERDn "<<HT<<" "<<HTJECup<<" "<<HTJECdown<<" "<<HTJERup<<" "<<HTJERdown<<endl;
+    // float myHT=0;
+    // for(int i=0;i<Jets->size();i++){
+    //   if((*Jets)[i].Pt() > 30 && abs((*Jets)[i].Eta()) < 2.4) myHT=myHT+(*Jets)[i].Pt();
+    // }
+    // cout<<"myHT:"<<myHT<<endl;
     //----MET
     if(MET < 200) continue;
     h_cutflow->Fill("MET>200",wt);
@@ -343,4 +360,83 @@ void SignalRegGraviton::print(Long64_t jentry){
     cout<<"JetPt:"<<(*Jets)[i].Pt()<<" JetEta:"<<(*Jets)[i].Eta()<<" JetPhi:"<<(*Jets)[i].Phi()<<endl;
   }
   cout<<"MHTPhi:"<<MHTPhi<<" DPhi1:"<<DeltaPhi1<<" DeltaPhi2:"<<DeltaPhi2<<" DeltaPhi3:"<<DeltaPhi3<<" DeltaPhi4:"<<DeltaPhi4<<endl;
+}
+
+void SignalRegGraviton::changeJets(int jec2Use, int jer2Use, int jet2Vary){
+  if((jec2Use*jer2Use)!=0) return;
+  if(jet2Vary!=4 && jet2Vary!=8 && jet2Vary!=48 && jet2Vary!=84) return;
+  
+  if(jet2Vary==4 || jet2Vary==48 || jet2Vary==84){
+    TLorentzVector iJet;
+    vector<TLorentzVector> jets;
+    if(jec2Use==-1){ BTagsDeepCSV = BTagsDeepCSVJECdown; MET = (*METDown)[1]; METPhi = (*METPhiDown)[1];}
+    else if(jec2Use== 1){ BTagsDeepCSV = BTagsDeepCSVJECup; MET = (*METUp)[1]; METPhi = (*METPhiUp)[1];}
+    else if(jer2Use==-1){ BTagsDeepCSV = BTagsDeepCSVJERdown; MET = (*METDown)[0]; METPhi = (*METPhiDown)[0];}
+    else if(jer2Use== 1){ BTagsDeepCSV = BTagsDeepCSVJERup; MET = (*METUp)[0]; METPhi = (*METPhiUp)[0];}
+  
+    //---- looking at https://github.com/kpedro88/Analysis/blob/da0bb3e24e04768d3c205b45cbd74b18e638133c/KCode/KSkimmerVariators.h#L409-L436
+    const auto& JetsUnc_origIndex = (jec2Use== 1)?*JetsJECup_origIndex:(jec2Use==-1)?*JetsJECdown_origIndex:(jer2Use==1)?*JetsJERup_origIndex:(jer2Use==-1)?*JetsJERdown_origIndex:*Jets_origIndex; //last one is a dummy value
+    const auto& JetsUnc_jerFactor = (jec2Use== 1)?*JetsJECup_jerFactor:(jec2Use==-1)?*JetsJECdown_jerFactor:*Jets_jerFactor; //last one is a dummy value
+    const auto& Jets_unc = (jec2Use== 1)?*Jets_jecUnc:(jec2Use==-1)?*Jets_jecUnc:(jer2Use==1)?*Jets_jerFactorUp:(jer2Use==-1)?*Jets_jerFactorDown:*Jets_jecFactor; //last one is a dummy value
+    
+    // if(EvtNum==207632 || EvtNum == 2055901){
+    vector<int> newIndex(Jets_origIndex->size(),-1);
+    for(unsigned k = 0; k < Jets_origIndex->size(); ++k){
+      //reverse the index vector
+      newIndex[(*Jets_origIndex)[k]] = k;
+    }
+    for(unsigned j = 0; j < JetsUnc_origIndex.size(); ++j){
+      //Jets[Unc]_origIndex is sorted in the final order after uncertainty variation is applied
+      //go up to common ancestor, then down to central smeared collection
+      int i = newIndex[JetsUnc_origIndex[j]];
+      //undo central smearing, apply JEC unc, redo smearing w/ new smearing factor
+      if(jec2Use== 1)       jets.push_back((*Jets)[i]*(1./(*Jets_jerFactor)[i])*(1+Jets_unc[i])*JetsUnc_jerFactor[j]);
+      else if(jec2Use== -1) jets.push_back((*Jets)[i]*(1./(*Jets_jerFactor)[i])*(1-Jets_unc[i])*JetsUnc_jerFactor[j]);
+      else if(jer2Use==  1) jets.push_back((*Jets)[i]*(1./(*Jets_jerFactor)[i])*Jets_unc[i]);
+      else if(jer2Use== -1) jets.push_back((*Jets)[i]*(1./(*Jets_jerFactor)[i])*Jets_unc[i]);
+    }
+    sortTLorVec(&jets);
+    if(Jets->size()!=jets.size()){
+      cout<<"oooooo.... Jets size:"<<Jets->size()<<" jets size:"<<jets.size()<<endl;
+      return;
+    }
+    for(int i=0;i<jets.size();i++){
+      //      if(EvtNum==207632 || EvtNum == 2055901){
+      (*Jets)[i] = jets[i];
+    }
+  }//AK4 jets
+  //---------------For AK8 jets
+  if(jet2Vary==8 || jet2Vary==48 || jet2Vary==84){
+    TLorentzVector iJet;
+    vector<TLorentzVector> jets;
+    const auto& JetsAK8Unc_origIndex = (jec2Use== 1)?*JetsAK8JECup_origIndex:(jec2Use==-1)?*JetsAK8JECdown_origIndex:(jer2Use==1)?*JetsAK8JERup_origIndex:(jer2Use==-1)?*JetsAK8JERdown_origIndex:*JetsAK8_origIndex; //last one is a dummy value
+    const auto& JetsAK8Unc_jerFactor = (jec2Use== 1)?*JetsAK8JECup_jerFactor:(jec2Use==-1)?*JetsAK8JECdown_jerFactor:*JetsAK8_jerFactor; //last one is a dummy value
+    const auto& JetsAK8_unc = (jec2Use== 1)?*JetsAK8_jecUnc:(jec2Use==-1)?*JetsAK8_jecUnc:(jer2Use==1)?*JetsAK8_jerFactorUp:(jer2Use==-1)?*JetsAK8_jerFactorDown:*JetsAK8_jecFactor; //last one is a dummy value
+    
+    // if(EvtNum==207632 || EvtNum == 2055901){
+    vector<int> newIndexAK8(JetsAK8_origIndex->size(),-1);
+    for(unsigned k = 0; k < JetsAK8_origIndex->size(); ++k){
+      //reverse the index vector
+      newIndexAK8[(*JetsAK8_origIndex)[k]] = k;
+    }
+    for(unsigned j = 0; j < JetsAK8Unc_origIndex.size(); ++j){
+      //JetsAK8[Unc]_origIndex is sorted in the final order after uncertainty variation is applied
+      //go up to common ancestor, then down to central smeared collection
+      int i = newIndexAK8[JetsAK8Unc_origIndex[j]];
+      //undo central smearing, apply JEC unc, redo smearing w/ new smearing factor
+      if(jec2Use== 1)       jets.push_back((*JetsAK8)[i]*(1./(*JetsAK8_jerFactor)[i])*(1+JetsAK8_unc[i])*JetsAK8Unc_jerFactor[j]);
+      else if(jec2Use== -1) jets.push_back((*JetsAK8)[i]*(1./(*JetsAK8_jerFactor)[i])*(1-JetsAK8_unc[i])*JetsAK8Unc_jerFactor[j]);
+      else if(jer2Use==  1) jets.push_back((*JetsAK8)[i]*(1./(*JetsAK8_jerFactor)[i])*JetsAK8_unc[i]);
+      else if(jer2Use== -1) jets.push_back((*JetsAK8)[i]*(1./(*JetsAK8_jerFactor)[i])*JetsAK8_unc[i]);
+    }
+    sortTLorVec(&jets);
+    if(JetsAK8->size()!=jets.size()){
+      cout<<"oooooo.... JetsAK8 size:"<<JetsAK8->size()<<" jets AK8 size:"<<jets.size()<<endl;
+      return;
+    }
+    for(int i=0;i<jets.size();i++){
+      (*JetsAK8)[i] = jets[i];
+    }
+  }
+  //---------------------------
 }
