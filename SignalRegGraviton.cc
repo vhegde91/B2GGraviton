@@ -94,8 +94,8 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
   else if(dataRun<0) cout<<"Processing it as "<<abs(dataRun)<<" MC"<<endl;
   else cout<<"No specific data/MC year"<<endl;
 
-  int jec2Use = 0;//-1 for JEC down, 0 for CV, 1 for JEC up
-  int jer2Use = -1;//-1 for JER down, 0 for CV, 1 for JER up
+  int jec2Use = 1;//-1 for JEC down, 0 for CV, 1 for JEC up
+  int jer2Use = 0;//-1 for JER down, 0 for CV, 1 for JER up
   int jet2Vary = 48;//4: only AK4 jets, 8: only AK8 jets, 48 or 84: both AK4 and AK8.
   if(jet2Vary!=0 && (jec2Use!=0 || jer2Use!=0)){
     cout<<"Varying jets like:"<<jet2Vary<<" 4: only AK4 jets, 8: only AK8 jets, 48 or 84: both AK4 and AK8"<<endl;
@@ -434,9 +434,35 @@ void SignalRegGraviton::changeJets(int jec2Use, int jer2Use, int jet2Vary){
       cout<<"oooooo.... JetsAK8 size:"<<JetsAK8->size()<<" jets AK8 size:"<<jets.size()<<endl;
       return;
     }
+    //get corrections for AK8 mass using Pt corrections applied.
+    vector<double> ak8SDmass;
+    for(int j=0;j<jets.size();j++){
+      double mindr = 1000.;
+      int mindrIdx = -1;
+      for(int J=0;J<JetsAK8->size();J++){
+	if(jets[j].DeltaR((*JetsAK8)[J]) < mindr){
+	  mindr = jets[j].DeltaR((*JetsAK8)[J]);
+	  mindrIdx = J;
+	}
+      }
+      ak8SDmass.push_back(((*JetsAK8_softDropMass)[mindrIdx]) * (jets[j].Pt() / (*JetsAK8)[mindrIdx].Pt()));
+    }
     for(int i=0;i<jets.size();i++){
       (*JetsAK8)[i] = jets[i];
+      (*JetsAK8_softDropMass)[i] = ak8SDmass[i];
     }
   }
   //---------------------------
 }
+
+
+    //////////////////////////
+    // cout<<"Before:"<<endl;
+    // for(int J=0;J<JetsAK8->size();J++)
+    //   cout<<"AK8 Pt: "<<(*JetsAK8)[J].Pt()<<" Eta: "<<(*JetsAK8)[J].Eta()<<" Phi: "<<" Mass: "<<(*JetsAK8)[J].M()<<" SD mass: "<<(*JetsAK8_softDropMass)[J]<<endl;
+    /////////////////////////////
+
+    // cout<<"After:"<<endl;
+    // for(int j=0;j<JetsAK8->size();j++)
+    //   cout<<"AK8 Pt: "<<(*JetsAK8)[j].Pt()<<" Eta: "<<(*JetsAK8)[j].Eta()<<" Phi: "<<" Mass: "<<(*JetsAK8)[j].M()<<" SD mass: "<<ak8SDmass[j]<<endl;
+    // cout<<"**************"<<endl;

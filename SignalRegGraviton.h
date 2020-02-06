@@ -164,7 +164,7 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 
 SignalRegGraviton::SignalRegGraviton(const TString &inputFileList, const char *outFileName, const char* dataset) {
   string nameData=dataset;
-  TChain *tree;// = new TChain("tree");//for skimmed files
+  TChain *tree = new TChain("tree");//for skimmed files
   tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
   if( ! FillChain(tree, inputFileList) ) {
     std::cerr << "Cannot get the tree " << std::endl;
