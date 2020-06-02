@@ -12,6 +12,7 @@
 #include "TFile.h"
 #include "TLorentzVector.h"
 #include "TDirectory.h"
+#include "TF1.h"
 
 class SignalRegGraviton : public NtupleVariables{
 
@@ -23,15 +24,22 @@ class SignalRegGraviton : public NtupleVariables{
   void     EventLoop(const char *,const char *);
   void     BookHistogram(const char *);
   void print(Long64_t);
+  bool passHEMjetVeto(double);
   void changeJets(int,int,int);
+  void applySDmassCorrAllAK8();
+  TFile *sdCorrFile;
+  TF1 *puppisd_corrGEN, *puppisd_corrRECO_cen, *puppisd_corrRECO_for;
+  vector<TLorentzVector> uncorrAK8SubjSum;
+  vector<double> SDmassCorrFac;
 
   //Variables defined
   bool isMC=true;
   double wt=0,lumiInfb=35.815165;
-  vector<double> ggfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2250,2400,2550,2700,2900,3200};
-  vector<double> vbfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1850,2100,2350};
-
-  const static int nCategories = 8;  
+  /* vector<double> ggfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2250,2400,2550,2700,2900,3200}; */
+  /* vector<double> vbfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1850,2100,2350}; */
+  vector<double> ggfEdges = {400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2350,2550,2750,3000};
+  vector<double> vbfEdges = {400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2250,2400};
+  const static int nCategories = 9;  
   vector<TString> categName = {"0: SR_VBF_HP",
 			       "1: SR_VBF_LP",
 			       "2: SR_ggF_HP",
@@ -40,13 +48,15 @@ class SignalRegGraviton : public NtupleVariables{
 			       "5: SB_VBF_LP",
 			       "6: SB_ggF_HP",
 			       "7: SB_ggF_LP",
-			       "8: ND"};
+			       "8: BaseLineSB"};
   TH1D *h_EvtCategory;
   TH1D *h_vetos;
   TH1D *h_filters;
+  TH1D *h_madHT;
   TH1D *h_MET[nCategories];
   TH1D *h_MHT[nCategories];
   TH1D *h_HT[nCategories];
+  TH1D *h_METPhi[nCategories];
 
   TH1D *h_MT[nCategories];
   TH1D *h_MTvBinggf[nCategories];
@@ -64,6 +74,7 @@ class SignalRegGraviton : public NtupleVariables{
   TH1D *h_Jet1Pt[nCategories];
   TH1D *h_Jet1Eta[nCategories];
   TH1D *h_Jet1Phi[nCategories];
+  TH1D *h_NVtx[nCategories];
 
   TH2D *h2_MTggfPDF[nCategories];
   TH2D *h2_MTvbfPDF[nCategories];
@@ -92,7 +103,7 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
   h_EvtCategory = new TH1D("EvtCategory","Event category",10,0,10);
   h_vetos = new TH1D("vetos","0 means e veto, mu veto and photon veto applied",5,0,5);
   h_filters = new TH1D("Filters","Filters: Bin1 : all nEvnts, other bins: filter pass/fail",10,0,10);
-
+  h_madHT = new TH1D("madHT","madHT of the sample",120,0,3000);
   for(int i=0;i<nCategories;i++){
     name  = "MET_"+to_string(i); title = "MET "+categName[i];
     h_MET[i] = new TH1D(name,title,200,0,2000);
@@ -139,6 +150,9 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
     name = "dPhi4_"+to_string(i); title = "#Delta#Phi(AK4J4,MET) "+categName[i];
     h_dhi4[i] = new TH1D(name,title,40,0,4);
 
+    name  = "METPhi_"+to_string(i); title = "MET Phi"+categName[i];
+    h_METPhi[i] = new TH1D(name,title,80,-4,4);
+
     name = "Jet1Pt_"+to_string(i); title = "Pt of leading jet "+categName[i];
     h_Jet1Pt[i] = new TH1D(name,title,200,0,2000);
 
@@ -147,6 +161,9 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 
     name = "Jet1Phi_"+to_string(i); title = "#Phi of leading jet "+categName[i];
     h_Jet1Phi[i] = new TH1D(name,title,80,-4,4);
+
+    name = "NVertex_"+to_string(i); title = "No. of vertices "+categName[i];
+    h_NVtx[i] = new TH1D(name,title,80,0,80);
 
     name = "MTvBinvbf_PDFidx"+to_string(i); title = "x:MT VBF, y:PDF index "+categName[i];
     h2_MTvbfPDF[i] = new TH2D(name,title,vbfEdges.size()-1,&(vbfEdges[0]),110,0.,110.);
@@ -165,7 +182,7 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 SignalRegGraviton::SignalRegGraviton(const TString &inputFileList, const char *outFileName, const char* dataset) {
   string nameData=dataset;
   TChain *tree = new TChain("tree");//for skimmed files
-  tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
+  //  tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
   if( ! FillChain(tree, inputFileList) ) {
     std::cerr << "Cannot get the tree " << std::endl;
   } else {
