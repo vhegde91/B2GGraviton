@@ -23,6 +23,7 @@ class SignalRegGraviton : public NtupleVariables{
   void     EventLoop(const char *,const char *);
   void     BookHistogram(const char *);
   void print(Long64_t);
+  void changeJets(int,int,int);
 
   //Variables defined
   bool isMC=true;
@@ -68,7 +69,6 @@ class SignalRegGraviton : public NtupleVariables{
   TH2D *h2_MTvbfPDF[nCategories];
   TH2D *h2_MTggfScl[nCategories];
   TH2D *h2_MTvbfScl[nCategories];
-  TH1F *h_PDFNorm; TString nameOfHist1FromFile = "PDFNorm";
 
   TH1F *h_cutflow;
   TFile *oFile;
@@ -164,8 +164,8 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 
 SignalRegGraviton::SignalRegGraviton(const TString &inputFileList, const char *outFileName, const char* dataset) {
   string nameData=dataset;
-  TChain *tree = new TChain("tree");
-  if(nameData=="signal") tree = new TChain("TreeMaker2/PreSelection");
+  TChain *tree = new TChain("tree");//for skimmed files
+  tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
   if( ! FillChain(tree, inputFileList) ) {
     std::cerr << "Cannot get the tree " << std::endl;
   } else {
@@ -182,8 +182,8 @@ SignalRegGraviton::SignalRegGraviton(const TString &inputFileList, const char *o
 }
 
 Bool_t SignalRegGraviton::FillChain(TChain *chain, const TString &inputFileList) {
-  int itr=0;
-  TFile *filePointer;
+  /* int itr=0; */
+  /* TFile *filePointer; */
   ifstream infile(inputFileList, ifstream::in);
   std::string buffer;
 
@@ -198,12 +198,12 @@ Bool_t SignalRegGraviton::FillChain(TChain *chain, const TString &inputFileList)
     if(!infile.good()) break;
     //    std::cout << "Adding tree from " << buffer.c_str() << std::endl;
 
-    if(isMC){
-      filePointer = TFile::Open(buffer.c_str());
-      if(itr==0) h_PDFNorm = (TH1F*)filePointer->Get("PDFNorm");
-      else h_PDFNorm->Add((TH1F*)filePointer->Get("PDFNorm"));
-      itr++;
-    }
+    /* if(isMC){ */
+    /*   filePointer = TFile::Open(buffer.c_str()); */
+    /*   if(itr==0) h_PDFNorm = (TH1F*)filePointer->Get("PDFNorm"); */
+    /*   else h_PDFNorm->Add((TH1F*)filePointer->Get("PDFNorm")); */
+    /*   itr++; */
+    /* } */
 
     chain->Add(buffer.c_str());
   }
@@ -231,7 +231,6 @@ SignalRegGraviton::~SignalRegGraviton() {
   delete fChain->GetCurrentFile();
   oFile->cd();
   oFile->Write();
-  if(isMC) h_PDFNorm->Write();
   oFile->Close();
 
 }
