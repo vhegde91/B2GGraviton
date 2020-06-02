@@ -11,7 +11,7 @@ void splitRunList(string infile,int nfPerJob){
   string exeCondor  = "worker2.sh";
   string exeAna     = "signalRegGraviton";
   string datasetAna = "";
-  string filesToTransfer = "";
+  string filesToTransfer = "puppiCorr.root,PileupHistograms_2016_69mb_pm5.root,PileupHistograms_2017_69mb_pm5.root,PileupHistograms_2018_69mb_pm5.root,btag.tar";
   //---------------------------------------------------
   TString fileName = infile;
   if(fileName.Contains("MC2016")) datasetAna = "MC_2016";

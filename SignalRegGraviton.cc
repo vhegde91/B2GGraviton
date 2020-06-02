@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string>
 #include <fstream>
+#include "btag/BTagCorrector.h"
 
 using namespace std;
 
@@ -37,7 +38,7 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
   cout << "nentries " << nentries << endl;
   cout << "Analyzing dataset " << data << " " << endl;
 
-  TString s_data=data;
+  TString s_data=data, inFileList = inputFileList;
   Long64_t nbytes = 0, nb = 0;
   int decade = 0;
   Long64_t nEvtSurv = 0;
@@ -46,6 +47,10 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
   vector<TLorentzVector> myjets;
   int isSB=0;
   vector<int> categNum;
+  bool applySDmassCorr = 1, applyMadHTless600 = 0, applyPUwt = 1, applybTagSFs = 1;
+  TString puWtFileName;
+  TFile *f_puwt;
+
   for(int i=0;i<categName.size();i++) h_EvtCategory->Fill(categName[i],0);
   h_cutflow->Fill("0",0);
   h_cutflow->Fill("Weighted",0);    
@@ -81,20 +86,42 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
   h_filters->Fill("JetID",0);
   h_filters->Fill("(MET/CaloMET<5.)",0);
 
+  double p0=-100, p1=-100, p2=-100, deepCSVvalue = 0.0, tempVar = 0.;
   int dataRun = 0;
-  if(s_data.Contains("MC_2016")){ dataRun = -2016; lumiInfb = 35.815165;}
-  else if(s_data.Contains("MC_2017")){ dataRun = -2017; lumiInfb = 41.486136;}
-  else if(s_data.Contains("MC_2018")){ dataRun = -2018; lumiInfb = 59.546381;}
+  if(s_data.Contains("MC_2016")){ dataRun = -2016;      lumiInfb = 35.815165; deepCSVvalue = 0.6321; p0 = 1.21277e+02; p1 = 8.77679e+01; p2 = 9.94172e-01;}
+  else if(s_data.Contains("MC_2017")){ dataRun = -2017; lumiInfb = 41.486136; deepCSVvalue = 0.4941; p0 = 1.61724e+02; p1 = 6.91644e+01; p2 = 9.89446e-01;}
+  else if(s_data.Contains("MC_2018")){ dataRun = -2018; lumiInfb = 59.546381; deepCSVvalue = 0.4184; p0 = 1.70454e+02; p1 = 6.64100e+01; p2 = 9.89298e-01;}
 
-  else if(s_data.Contains("2016")){ dataRun = 2016; isMC = false;}
-  else if(s_data.Contains("2017")){ dataRun = 2017; isMC = false;}
-  else if(s_data.Contains("2018")){ dataRun = 2018; isMC = false;}
-  
+  else if(s_data.Contains("2016")){ dataRun = 2016; isMC = false; deepCSVvalue = 0.6321;}
+  else if(s_data.Contains("2017")){ dataRun = 2017; isMC = false; deepCSVvalue = 0.4941;}
+  else if(s_data.Contains("2018")){ dataRun = 2018; isMC = false; deepCSVvalue = 0.4184;}
+
+  //----------PU reweighting
+  puWtFileName = "PileupHistograms_"+to_string(abs(dataRun))+"_69mb_pm5.root";
+  f_puwt = TFile::Open(puWtFileName,"READ");
+  TH1* puhist = (TH1*)f_puwt->Get("pu_weights_central");
+  //----------btag SFs
+  int fListIndxOld=-1;
+  vector<TString> inFileName;
+  TString sampleName;
+  string str1;
+  ifstream runListFile(inputFileList);
+  TFile *currFile;
+  while (std::getline(runListFile, str1)) {
+    inFileName.push_back(str1);
+  }runListFile.close();
+  cout<<"applying b-tag SFs? "<<applybTagSFs<<endl;
+  BTagCorrector btagcorr;
+  //----------mad HT cuts for tt_dilep and single_lep
+  if(inFileList.Contains("TTJets_SingleLeptFromT") || inFileList.Contains("TTJets_DiLept")) applyMadHTless600 = true;
+
   if(dataRun>0) cout<<"Processing it as "<<dataRun<<" data"<<endl;
   else if(dataRun<0) cout<<"Processing it as "<<abs(dataRun)<<" MC"<<endl;
   else cout<<"No specific data/MC year"<<endl;
+  cout<<"Apply PU reweighting on MC? "<<applyPUwt<<endl;
+  cout<<"Apply SD mass corrections on data & MC? "<<applySDmassCorr<<endl;
 
-  int jec2Use = 1;//-1 for JEC down, 0 for CV, 1 for JEC up
+  int jec2Use = 0;//-1 for JEC down, 0 for CV, 1 for JEC up
   int jer2Use = 0;//-1 for JER down, 0 for CV, 1 for JER up
   int jet2Vary = 48;//4: only AK4 jets, 8: only AK8 jets, 48 or 84: both AK4 and AK8.
   if(jet2Vary!=0 && (jec2Use!=0 || jer2Use!=0)){
@@ -102,6 +129,22 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
     if(jec2Use!=0) cout<<"!!!!!!!!!! Applying JECs. -1 for JEC down, 0 for CV, 1 for JEC up. I am using "<<jec2Use<<" !!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
     if(jer2Use!=0) cout<<"!!!!!!!!!! Applying JERs. -1 for JER down, 0 for CV, 1 for JER up. I am using "<<jer2Use<<" !!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
   }
+  //----- SD mass corrections
+  if(applySDmassCorr){
+    if(abs(dataRun) == 2016 || abs(dataRun) == 2017 || abs(dataRun) == 2018){
+      sdCorrFile = TFile::Open("puppiCorr.root");//https://github.com/cms-jet/PuppiSoftdropMassCorrections/tree/80X
+      if(sdCorrFile->IsOpen()){
+	puppisd_corrGEN      = (TF1*)sdCorrFile->Get("puppiJECcorr_gen");
+	puppisd_corrRECO_cen = (TF1*)sdCorrFile->Get("puppiJECcorr_reco_0eta1v3");
+	puppisd_corrRECO_for = (TF1*)sdCorrFile->Get("puppiJECcorr_reco_1v3eta2v5");
+      }
+      else{
+	cout<<"!!!!! can't get SD mass corr file. Will not apply any corrn."<<endl;
+	applySDmassCorr = false;
+      }
+    }
+  }
+
 
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     
@@ -120,9 +163,36 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
     if(dataRun==-2016 || dataRun==-2017) wt=Weight*1000.0*lumiInfb*NonPrefiringProb;
     else if(dataRun <=0) wt=Weight*1000.0*lumiInfb;
     else wt = 1.0;
+    if(applyPUwt && isMC){
+      tempVar = (puhist->GetBinContent(puhist->GetXaxis()->FindBin(min(TrueNumInteractions,puhist->GetBinLowEdge(puhist->GetNbinsX()+1)))));
+      if(tempVar < 100) wt = wt * tempVar;
+    }
+
+    //-------------- btag SFs
+    if(fListIndxOld!=fCurrent && isMC){ 
+      fListIndxOld = fCurrent;
+      sampleName = inFileName[fCurrent];
+      if(applybTagSFs){
+	// btagcorr.SetBtagSFunc(1);
+	// btagcorr.SetMistagSFunc(1);
+	currFile = TFile::Open(sampleName);
+	btagcorr.SetEffs(currFile);
+	if(dataRun==-2016) btagcorr.SetCalib("btag/DeepCSV_Moriond17_B_H_mod.csv");
+	if(dataRun==-2017) btagcorr.SetCalib("btag/DeepCSV_94XSF_V3_B_F_mod.csv");
+	if(dataRun==-2018) btagcorr.SetCalib("btag/DeepCSV_102XSF_V1_mod.csv");
+      }
+    }
+    double corrbtag = 1.0;
+    if(isMC && applybTagSFs){
+      corrbtag = btagcorr.GetSimpleCorrection(Jets,Jets_hadronFlavor,Jets_HTMask,Jets_bJetTagDeepCSVBvsAll,deepCSVvalue);
+      wt = wt * corrbtag;
+    }
+
+    if(isMC && applyMadHTless600 && madHT > 600) continue;
 
     h_cutflow->Fill("0",1);
     h_cutflow->Fill("Weighted",wt);
+    h_madHT->Fill(madHT,wt);
     //--------------
     if(jec2Use!=0 || jer2Use!=0) changeJets(jec2Use, jer2Use, jet2Vary);
     // cout<<"HT values from tree: Nominal, JECup, JECDn, JERup, JERDn "<<HT<<" "<<HTJECup<<" "<<HTJECdown<<" "<<HTJERup<<" "<<HTJERdown<<endl;
@@ -207,16 +277,16 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
 	if(!(trgName.Contains("MET"))) continue;
 	if((*TriggerPass)[i]==1 && (trgName.Contains("HLT_PFMET100_PFMHT100_IDTight_v") || trgName.Contains("HLT_PFMET110_PFMHT110_IDTight_v") ||
 				    trgName.Contains("HLT_PFMET120_PFMHT120_IDTight_v") || trgName.Contains("HLT_PFMET130_PFMHT130_IDTight_v") ||
-				    trgName.Contains("HLT_PFMET140_PFMHT140_IDTight_v") || trgName.Contains("HLT_PFMET90_PFMHT90_IDTight_v") || 
-				    trgName.Contains("HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_v") || trgName.Contains("HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v") ||
-				    trgName.Contains("HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v") || trgName.Contains("HLT_PFMETNoMu130_PFMHTNoMu130_IDTight_v") || 
-				    trgName.Contains("HLT_PFMETNoMu140_PFMHTNoMu140_IDTight_v") ||  trgName.Contains("HLT_PFMETNoMu90_PFMHTNoMu90_IDTight_v"))) trgPass = true;
+				    trgName.Contains("HLT_PFMET140_PFMHT140_IDTight_v") || trgName.Contains("HLT_PFMET90_PFMHT90_IDTight_v")))
+	  trgPass = true;
       }
       if(trgPass) h_cutflow->Fill("PassedTrigger",wt);
       else continue;
     }
+    else wt = wt*( (TMath::Erf((MET - p0) / p1) + 1) / 2. * p2);//apply trigger eff weights to MC
+
     bool HEMaffected = false;
-    if(dataRun==2018 && RunNum >=319077){
+    if(dataRun==2018 && RunNum >=319077){//for data 2018
       for(int i=0;i<Jets->size();i++){
 	if((*Jets)[i].Pt() < 30) continue;
 	if( (*Jets)[i].Eta() >= -3.20 && (*Jets)[i].Eta() <= -1.2 && 
@@ -224,7 +294,12 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
 	    (abs(DeltaPhi(METPhi,(*Jets)[i].Phi())) < 0.5) ){HEMaffected = true; break;}
       }
     }
+    if(dataRun==-2018){//for MC 2018
+      if( (EvtNum % 1000 > 1000*21.0/59.6) && !passHEMjetVeto(30.)) HEMaffected = true;
+    }
     //--------------------------end of triggers
+    if(applySDmassCorr) applySDmassCorrAllAK8();//SD mass corrections
+
     if(((*JetsAK8_softDropMass)[ak8J1Idx] > 65) && ((*JetsAK8_softDropMass)[ak8J1Idx] < 105)){ isSB=0; h_cutflow->Fill("SR_anyPurity",wt);}
     else if( (((*JetsAK8_softDropMass)[ak8J1Idx] > 30) && ((*JetsAK8_softDropMass)[ak8J1Idx] < 65)) || (((*JetsAK8_softDropMass)[ak8J1Idx] > 135) && ((*JetsAK8_softDropMass)[ak8J1Idx] < 300) )){ isSB=1; h_cutflow->Fill("SB_anyPurity",wt);}
     else isSB=-1;
@@ -285,10 +360,11 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
     }
 
     if(categNum.size()==0 || categNum.size() > 1){ cout<<"Could not IDfy category"<<endl; break;} //at max categs can be VBF or nonVBF. So size <=1.
+    if(categNum[0] >=4 && categNum[0] <=7) categNum.push_back(8);//if categNum[0] == 4,5,6,7 then it is Baseline + SB.
 
     h_vetos->Fill(NMuons+NElectrons+BTags+nPhotons,wt);    
 
-    if(mt < 500) continue;
+    if(mt < 400) continue;
     if(HEMaffected){
       h_cutflow->Fill("HEMaffected",wt);
       continue;
@@ -299,6 +375,7 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
       h_MET[categNum[iCategory]]->Fill(MET,wt);
       h_MHT[categNum[iCategory]]->Fill(MHT,wt);
       h_HT[categNum[iCategory]]->Fill(HT,wt);
+      h_METPhi[categNum[iCategory]]->Fill(METPhi,wt);
 
       h_MT[categNum[iCategory]]->Fill(mt,wt);
       if(mt > ggfEdges[ggfEdges.size()-1]) 
@@ -323,6 +400,7 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
 	h_Jet1Eta[categNum[iCategory]]->Fill(myjets[0].Eta(),wt);
 	h_Jet1Phi[categNum[iCategory]]->Fill(myjets[0].Phi(),wt);
       }
+      h_NVtx[categNum[iCategory]]->Fill(NVtx,wt);
       if(dataRun <=0){
 	for(int i=0;i<PDFweights->size();i++){
 	  h2_MTggfPDF[categNum[iCategory]]->Fill(mt,i,(*PDFweights)[i]*wt);
@@ -337,9 +415,38 @@ void SignalRegGraviton::EventLoop(const char *data,const char *inputFileList) {
     nEvtSurv++;
     h_cutflow->Fill("NEvtsNoWtLeft",1);
   } // loop over entries
-  cout<<"No. of entries survived: "<<nEvtSurv<<endl;
+  cout<<"zzzzzzzzzzzzzz No. of entries survived: "<<nEvtSurv<<endl;
 }
 
+void SignalRegGraviton::applySDmassCorrAllAK8(){
+  float genCorr  = 1.;
+  float recoCorr = 1.;
+  float totalWeight = 1.;
+
+  TLorentzVector subjetSum;
+  uncorrAK8SubjSum.resize(0);
+  SDmassCorrFac.resize(0);
+
+  for(int i=0;i< JetsAK8->size();i++){
+    for(int j=0;j < (*JetsAK8_subjets)[i].size();j++){
+      if(j==0) subjetSum = (*JetsAK8_subjets)[i][j];
+      else subjetSum = subjetSum + (*JetsAK8_subjets)[i][j];
+      //      cout<<"subj pt,eta,phi,M:"<<(*JetsAK8_subjets)[i][j].Pt()<<", "<<(*JetsAK8_subjets)[i][j].Eta()<<", "<<(*JetsAK8_subjets)[i][j].Phi()<<" ,"<<(*JetsAK8_subjets)[i][j].M()<<endl;
+    }
+    uncorrAK8SubjSum.push_back(subjetSum);
+    SDmassCorrFac.push_back(1);
+    
+    genCorr =  puppisd_corrGEN->Eval( (*JetsAK8)[i].Pt() );
+    if( abs((*JetsAK8)[i].Eta())  <= 1.3 ) 
+      recoCorr = puppisd_corrRECO_cen->Eval( (*JetsAK8)[i].Pt() );
+    else 
+      recoCorr = puppisd_corrRECO_for->Eval( (*JetsAK8)[i].Pt() );
+    
+    SDmassCorrFac.push_back(genCorr * recoCorr);
+    (*JetsAK8_softDropMass)[i] = (subjetSum.M())*genCorr*recoCorr;
+    //    cout<<"genCorr:"<<genCorr<<" recoCorr:"<<recoCorr<<" subjetSum.M():"<<subjetSum.M()<<endl;
+  }
+}
 
 
 void SignalRegGraviton::print(Long64_t jentry){
@@ -360,6 +467,16 @@ void SignalRegGraviton::print(Long64_t jentry){
     cout<<"JetPt:"<<(*Jets)[i].Pt()<<" JetEta:"<<(*Jets)[i].Eta()<<" JetPhi:"<<(*Jets)[i].Phi()<<endl;
   }
   cout<<"MHTPhi:"<<MHTPhi<<" DPhi1:"<<DeltaPhi1<<" DeltaPhi2:"<<DeltaPhi2<<" DeltaPhi3:"<<DeltaPhi3<<" DeltaPhi4:"<<DeltaPhi4<<endl;
+}
+
+bool SignalRegGraviton::passHEMjetVeto(double ptThresh) {
+  for (int p = 0; p < Jets->size(); p++){
+    if (-3.2 <= Jets->at(p).Eta() && Jets->at(p).Eta() <= -1.2 &&
+	-1.77 <= Jets->at(p).Phi() && Jets->at(p).Phi() <= -0.67 &&
+	Jets->at(p).Pt() > ptThresh && abs(DeltaPhi(Jets->at(p).Phi(),METPhi)) < 0.5)
+      return false;
+  }
+  return true;
 }
 
 void SignalRegGraviton::changeJets(int jec2Use, int jer2Use, int jet2Vary){

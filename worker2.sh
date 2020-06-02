@@ -23,6 +23,8 @@ echo "ls"
 pwd
 cd -
 #cd $currDir
+mv $currDir/btag.tar .
+tar xf btag.tar
 echo "RUNNING ANALYSIS"
 pwd
 ./$executable $inputFileTag $outputFileTag $datasetName

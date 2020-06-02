@@ -1,0 +1,14 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WWTo1L1Nu2Q_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WWZ_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WZTo1L1Nu2Q_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WZTo1L3Nu_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_WZZ_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZZTo2L2Q_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZZTo2Q2Nu_MC2016.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_ZZZ_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTTT_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTWJetsToLNu_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTWJetsToQQ_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTGJets_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTZToLLNuNu_MC2017.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SusyRA2Analysis2015/Skims/Run2ProductionV17/tree_signal/tree_TTZToQQ_MC2017.root
