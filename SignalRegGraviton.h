@@ -9,6 +9,7 @@
 #include "TH1F.h"
 #include "TH2.h"
 #include <TProfile.h>
+#include <TProfile2D.h>
 #include "TFile.h"
 #include "TLorentzVector.h"
 #include "TDirectory.h"
@@ -25,7 +26,7 @@ class SignalRegGraviton : public NtupleVariables{
   void     BookHistogram(const char *);
   void print(Long64_t);
   bool passHEMjetVeto(double);
-  void changeJets(int,int,int);
+  void changeJets(int,int,int,bool);
   void applySDmassCorrAllAK8();
   TFile *sdCorrFile;
   TF1 *puppisd_corrGEN, *puppisd_corrRECO_cen, *puppisd_corrRECO_for;
@@ -35,6 +36,7 @@ class SignalRegGraviton : public NtupleVariables{
   //Variables defined
   bool isMC=true;
   double wt=0,lumiInfb=35.815165;
+  bool hasBadAK8 = false;
   /* vector<double> ggfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2250,2400,2550,2700,2900,3200}; */
   /* vector<double> vbfEdges = {500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1850,2100,2350}; */
   vector<double> ggfEdges = {400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2350,2550,2750,3000};
@@ -53,6 +55,18 @@ class SignalRegGraviton : public NtupleVariables{
   TH1D *h_vetos;
   TH1D *h_filters;
   TH1D *h_madHT;
+  TProfile *p_PtJECJERFac;
+  TProfile *p_EtaJECJERFac;
+  TProfile2D *p2_EtaPtJECJERFac;
+
+  TH1D *h_MET_org, *h_MET_corr;
+  TH1D *h_HT_org, *h_HT_corr, *h_myHT;
+  TH1D *h_NJets_org, *h_NJets_corr;
+  TH1D *h_J1Pt_org, *h_J1Pt_corr;
+  TH1D *h_J1Eta_org, *h_J1Eta_corr;
+  TH1D *h_AK8J1Pt_org, *h_AK8J1Pt_corr;
+  TH1D *h_AK8J1Eta_org, *h_AK8J1Eta_corr;
+
   TH1D *h_MET[nCategories];
   TH1D *h_MHT[nCategories];
   TH1D *h_HT[nCategories];
@@ -62,6 +76,11 @@ class SignalRegGraviton : public NtupleVariables{
   TH1D *h_MTvBinggf[nCategories];
   TH1D *h_MTvBinvbf[nCategories];
 
+  TH1D *h_Mjj[nCategories];
+  TH1D *h_EtaJ1[nCategories];
+  TH1D *h_EtaJ2[nCategories];
+  TH1D *h_dEta[nCategories];
+  TH1D *h_nVBFjets[nCategories];
   TH1D *h_AK8J1Pt[nCategories];
   TH1D *h_AK8J1Eta[nCategories];
   TH1D *h_AK8J1Phi[nCategories];
@@ -76,6 +95,7 @@ class SignalRegGraviton : public NtupleVariables{
   TH1D *h_Jet1Phi[nCategories];
   TH1D *h_NVtx[nCategories];
 
+  TH2D *h2_MjjDeta[nCategories];
   TH2D *h2_MTggfPDF[nCategories];
   TH2D *h2_MTvbfPDF[nCategories];
   TH2D *h2_MTggfScl[nCategories];
@@ -104,6 +124,26 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
   h_vetos = new TH1D("vetos","0 means e veto, mu veto and photon veto applied",5,0,5);
   h_filters = new TH1D("Filters","Filters: Bin1 : all nEvnts, other bins: filter pass/fail",10,0,10);
   h_madHT = new TH1D("madHT","madHT of the sample",120,0,3000);
+  p_PtJECJERFac = new TProfile("PtJECJERFac","x:AK4 Jet Pt, y:JEC/JER factor",80,0,2000,0,3);
+  p_EtaJECJERFac = new TProfile("EtaJECJERFac","x:AK4 Jet Eta, y:JEC/JER factor",60,-6,6,0,3);
+  p2_EtaPtJECJERFac = new TProfile2D("EtaPtJECJERFac","x:AK4 Jet Eta, y:AK4 Jet Pt, z:JEC/JER factor",60,-6,6,80,0,2000,0,3);
+
+  h_MET_org = new TH1D("MET_org","MET original, nominal JEC/JER",200,0,2000);
+  h_MET_corr= new TH1D("MET_corr","MET with JEC/JER corr up/down",200,0,2000);
+  h_HT_org  = new TH1D("HT_org","HT original, nominal JEC/JER",300,0,3000);
+  h_HT_corr = new TH1D("HT_corr","HT with JEC/JER corr up/down",300,0,3000);
+  h_myHT = new TH1D("myHT","HT with JEC/JER corr up/down using my jets",300,0,3000);
+  h_NJets_org = new TH1D("NJets_org","NJets original, nominal JEC/JER",15,0,15);
+  h_NJets_corr= new TH1D("NJets_corr","NJets with JEC/JER corr up/down",15,0,15);
+  h_J1Pt_org  = new TH1D("J1Pt_org","leading AK4 Pt original, nominal JEC/JER",200,0,2000);
+  h_J1Pt_corr = new TH1D("J1Pt_corr","leading AK4 Pt with JEC/JER corr up/down",200,0,2000);
+  h_J1Eta_org = new TH1D("J1Eta_org","leading AK4 Eta original, nominal JEC/JER",120,-6,6);
+  h_J1Eta_corr = new TH1D("J1Eta_corr","leading AK4 Eta with JEC/JER corr up/down",120,-6,6);
+  h_AK8J1Pt_org= new TH1D("AK8J1Pt_org","leading AK8 Pt original, nominal JEC/JER",200,0,2000);
+  h_AK8J1Pt_corr = new TH1D("AK8J1Pt_corr","leading AK8 Pt with JEC/JER corr up/down",200,0,2000);
+  h_AK8J1Eta_org = new TH1D("AK8J1Eta_org","leading AK8 Eta original, nominal JEC/JER",120,-6,6);
+  h_AK8J1Eta_corr= new TH1D("AK8J1Eta_corr","leading AK8 Eta with JEC/JER corr up/down",120,-6,6);
+
   for(int i=0;i<nCategories;i++){
     name  = "MET_"+to_string(i); title = "MET "+categName[i];
     h_MET[i] = new TH1D(name,title,200,0,2000);
@@ -122,6 +162,21 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 
     name  = "MTvBinvbf_"+to_string(i); title = "vbf m_{T}(MET,AK8J1) "+categName[i];
     h_MTvBinvbf[i] = new TH1D(name,title,vbfEdges.size()-1,&(vbfEdges[0]));
+
+    name  = "Mjj_"+to_string(i); title = "M_{jj}"+categName[i];
+    h_Mjj[i] = new TH1D(name,title,250,0,2500);
+
+    name  = "vbfJ1Eta_"+to_string(i); title = "#eta_{VBF J1} "+categName[i];
+    h_EtaJ1[i] = new TH1D(name,title,100,-5,5);
+
+    name  = "vbfJ2Eta_"+to_string(i); title = "#eta_{VBF J2} "+categName[i];
+    h_EtaJ2[i] = new TH1D(name,title,100,-5,5);
+
+    name  = "dEta_"+to_string(i); title = "#Delta#eta_{VBF J1, VBF J2} "+categName[i];
+    h_dEta[i] = new TH1D(name,title,100,0,10);
+
+    name  = "nVBFjets_"+to_string(i); title = "VBF jet cands "+categName[i];
+    h_nVBFjets[i] = new TH1D(name,title,10,0,10);
 
     name  = "AK8J1Pt_"+to_string(i); title = "Pt of leading AK8Jet "+categName[i];
     h_AK8J1Pt[i] = new TH1D(name,title,200,0,2000);
@@ -165,6 +220,9 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
     name = "NVertex_"+to_string(i); title = "No. of vertices "+categName[i];
     h_NVtx[i] = new TH1D(name,title,80,0,80);
 
+    name = "MjjDeta_"+to_string(i); title = "x:M_{jj}, y: #Delta#eta "+categName[i];
+    h2_MjjDeta[i] = new TH2D(name,title,250,0,2500,100,0,10);
+    
     name = "MTvBinvbf_PDFidx"+to_string(i); title = "x:MT VBF, y:PDF index "+categName[i];
     h2_MTvbfPDF[i] = new TH2D(name,title,vbfEdges.size()-1,&(vbfEdges[0]),110,0.,110.);
 
@@ -176,13 +234,14 @@ void SignalRegGraviton::BookHistogram(const char *outFileName) {
 
     name = "MTvBinggF_Sclidx"+to_string(i); title = "x:MT ggF, y:Scale index "+categName[i];
     h2_MTggfScl[i] = new TH2D(name,title,ggfEdges.size()-1,&(ggfEdges[0]),10,0.,10.);
+
   }
 }
 
 SignalRegGraviton::SignalRegGraviton(const TString &inputFileList, const char *outFileName, const char* dataset) {
   string nameData=dataset;
-  TChain *tree = new TChain("tree");//for skimmed files
-  //  tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
+  TChain *tree;// = new TChain("tree");//for skimmed files
+  tree = new TChain("TreeMaker2/PreSelection");//for unskimmed files
   if( ! FillChain(tree, inputFileList) ) {
     std::cerr << "Cannot get the tree " << std::endl;
   } else {

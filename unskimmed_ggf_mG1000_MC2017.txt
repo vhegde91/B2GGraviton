@@ -1,0 +1,2 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/ggF/2017/PrivateSamples.ggF_ZZ_mG1000_2017_0_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/ggF/2017/PrivateSamples.ggF_ZZ_mG1000_2017_1_RA2AnalysisTree.root

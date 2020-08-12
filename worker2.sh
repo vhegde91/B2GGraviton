@@ -23,8 +23,9 @@ echo "ls"
 pwd
 cd -
 #cd $currDir
-mv $currDir/btag.tar .
+#mv $currDir/btag.tar .
 tar xf btag.tar
+mv ${executable}_Forcondor $executable
 echo "RUNNING ANALYSIS"
 pwd
 ./$executable $inputFileTag $outputFileTag $datasetName

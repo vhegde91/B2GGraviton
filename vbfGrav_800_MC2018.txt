@@ -1,0 +1,1 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2018/Skims/tree_signal/tree_VBFG_mG800_v15_MC2018.root

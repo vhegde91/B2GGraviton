@@ -9,7 +9,7 @@ using namespace std;
 void splitRunList(string infile,int nfPerJob){
   //------------ needed for condor files --------------
   string exeCondor  = "worker2.sh";
-  string exeAna     = "signalRegGraviton";
+  string exeAna     = "signalRegGraviton_Forcondor";
   string datasetAna = "";
   string filesToTransfer = "puppiCorr.root,PileupHistograms_2016_69mb_pm5.root,PileupHistograms_2017_69mb_pm5.root,PileupHistograms_2018_69mb_pm5.root,btag.tar";
   //---------------------------------------------------
@@ -17,6 +17,8 @@ void splitRunList(string infile,int nfPerJob){
   if(fileName.Contains("MC2016")) datasetAna = "MC_2016";
   if(fileName.Contains("MC2017")) datasetAna = "MC_2017";
   if(fileName.Contains("MC2018")) datasetAna = "MC_2018";
+
+  if(fileName.Contains("_ggf_") || fileName.Contains("_vbf_")) datasetAna = "Sig_"+datasetAna;
 
   if(fileName.Contains("MET_Run2016")) datasetAna = "2016";
   if(fileName.Contains("MET_Run2017")) datasetAna = "2017";

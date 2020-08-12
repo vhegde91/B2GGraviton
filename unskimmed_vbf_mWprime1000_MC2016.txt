@@ -1,0 +1,11 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_0_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_10_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_1_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_2_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_3_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_4_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_5_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_6_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_7_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_8_RA2AnalysisTree.root
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/VBF/2016/PrivateSamples.VBF_WZ_mWprime1000_2016_9_RA2AnalysisTree.root

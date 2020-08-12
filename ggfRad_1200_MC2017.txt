@@ -1,0 +1,1 @@
+root://cmseos.fnal.gov//store/user/lpcdm/noreplica/klamichh/SUSY_TreeMaker_Condor/Aug28_2019/ggF/2017/Skims/tree_signal/tree_ggFRad_mRad1200_v14_MC2017.root

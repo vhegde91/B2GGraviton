@@ -66,8 +66,14 @@ void findFailedJobs(string arg){
     choice1=1;
     
     if(choice1==1){
-      sprintf(cmd2,"hadd -f %s%s.root %s%s_job*.root",ofileStart,jdlStart,ofileStart,jdlStart);
-      system(cmd2);
+      if(totalJobs>1){
+	sprintf(cmd2,"hadd -f %s%s.root %s%s_job*.root",ofileStart,jdlStart,ofileStart,jdlStart);
+	system(cmd2);
+      }
+      else{
+	sprintf(cmd2,"cp %s%s_job0.root %s%s.root",ofileStart,jdlStart,ofileStart,jdlStart);
+	system(cmd2);
+      }
       
       cout<<endl<<"Remove individual files? If hadd was successfull, then you may remove individual files."<<endl;
       sprintf(cmd2,"remove? %s%s_job*.root",ofileStart,jdlStart);

@@ -26,6 +26,11 @@ root -l -q 'splitRunList.C("RareBG_MC2016.txt",1)'
 root -l -q 'splitRunList.C("RareBG_MC2017.txt",1)'
 root -l -q 'splitRunList.C("RareBG_MC2018.txt",1)'
 
+root -l -q 'splitRunList.C("vbfGrav_1200_MC2016.txt",1)'
+root -l -q 'splitRunList.C("vbfGrav_800_MC2017.txt",1)'
+root -l -q 'splitRunList.C("vbfGrav_800_MC2018.txt",1)'
+
+
 #root -l -q 'splitRunList.C("MET_Run2016.txt",1)'
 #root -l -q 'splitRunList.C("MET_Run2017.txt",1)'
 #root -l -q 'splitRunList.C("MET_Run2018.txt",1)'
